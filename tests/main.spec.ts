@@ -1,5 +1,5 @@
 import { Blockchain, SandboxContract, TreasuryContract } from '@ton/sandbox';
-import { Cell, toNano } from '@ton/core';
+import { Cell, beginCell, storeStateInit, StateInit, toNano } from '@ton/core';
 import { Init } from '../wrappers/Init';
 import '@ton/test-utils';
 import { compile } from '@ton/blueprint';
@@ -7,33 +7,46 @@ import { compile } from '@ton/blueprint';
 describe('main.fc contract tests', () => {
     let code: Cell;
 
-    // beforeAll(async () => {
-    //     code = await compile('Init');
-    // });
+    beforeAll(async () => {
+        code = await compile('Init');
+    });
 
-    // let blockchain: Blockchain;
-    // let deployer: SandboxContract<TreasuryContract>;
-    // let init: SandboxContract<Init>;
+    let blockchain: Blockchain;
+    let deployer: SandboxContract<TreasuryContract>;
+    let init: SandboxContract<Init>;
 
-    // beforeEach(async () => {
-    //     blockchain = await Blockchain.create();
+    beforeEach(async () => {
+        blockchain = await Blockchain.create();
 
-    //     init = blockchain.openContract(Init.createFromConfig({}, code));
+        const initAddress = await blockchain.treasury("initAddress");
 
-    //     deployer = await blockchain.treasury('deployer');
+        init = blockchain.openContract(Init.createFromConfig({
+            number: 0,
+            address: initAddress.address,
+        }, code));
 
-    //     const deployResult = await init.sendDeploy(deployer.getSender(), toNano('0.05'));
+        deployer = await blockchain.treasury('deployer');
 
-    //     expect(deployResult.transactions).toHaveTransaction({
-    //         from: deployer.address,
-    //         to: init.address,
-    //         deploy: true,
-    //         success: true,
-    //     });
-    // });
+        const deployResult = await init.sendDeploy(deployer.getSender(), toNano('0.05'));
 
-    it('should deploy', async () => {
-        // the check is done inside beforeEach
-        // blockchain and init are ready to use
+        expect(deployResult.transactions).toHaveTransaction({
+            from: deployer.address,
+            to: init.address,
+            deploy: true,
+            success: true,
+        });
+    });
+
+    it('should incremnet', async () => {
+        const sentMessageResult = await init.sendIncrement(deployer.getSender(), toNano('0.05'), 1);
+
+        expect(sentMessageResult.transactions).toHaveTransaction({
+            from: deployer.address,
+            to: init.address,
+            success: true,
+        });
+
+        const data = await init.getData();
+        expect(data.recent_sender.toString()).toBe(deployer.address.toString());
     });
 });
