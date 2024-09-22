@@ -15,4 +15,5 @@ dist
 # VIM
 Session.vim
 
-*.env
+# .env
+.env
