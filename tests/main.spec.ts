@@ -180,4 +180,17 @@ describe('main.fc contract tests', () => {
         });
     });
 
+    it('should not execute', async () => {
+        const senderWallet = await blockchain.treasury('sender');
+
+        const withdrawalRequestResult = await mainContract.sendExecute(senderWallet.getSender(), toNano('0.5'));
+
+        expect(withdrawalRequestResult.transactions).toHaveTransaction({
+            from: senderWallet.address,
+            to: mainContract.address,
+            success: false,
+            exitCode: 103,
+        });
+    });
+
 });
