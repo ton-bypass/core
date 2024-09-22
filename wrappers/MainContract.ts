@@ -13,6 +13,7 @@ import {
 
 export type MainContractConfig = {
     number: number;
+    value: number;
     address: Address;
     owner_address: Address;
 };
@@ -20,6 +21,7 @@ export type MainContractConfig = {
 export function mainContractConfigToCell(config: MainContractConfig): Cell {
     return beginCell()
         .storeUint(config.number, 32)
+        .storeUint(config.value, 32)
         .storeAddress(config.address)
         .storeAddress(config.owner_address)
         .endCell();
@@ -57,7 +59,7 @@ export class MainContact implements Contract {
 
     async sendIncrement(provider: ContractProvider, sender: Sender, value: bigint, increment_by: number) {
         const msg_body = beginCell()
-            .storeUint(1, 32) // OP code
+            .storeUint(4, 32) // OP code
             .storeUint(increment_by, 32) // increment_by value
             .endCell();
 
@@ -80,10 +82,21 @@ export class MainContact implements Contract {
         });
     }
 
+    async sendNoCodeDeposit(provider: ContractProvider, sender: Sender, value: bigint) {
+        const msg_body = beginCell().endCell();
+
+        await provider.internal(sender, {
+            value,
+            sendMode: SendMode.PAY_GAS_SEPARATELY,
+            body: msg_body,
+        });
+    }
+
     async getData(provider: ContractProvider) {
         const { stack } = await provider.get('get_contract_storage_data', []);
         return {
             number: stack.readNumber(),
+            value: stack.readNumber(),
             recent_sender: stack.readAddress(),
             owner_address: stack.readAddress(),
         };
