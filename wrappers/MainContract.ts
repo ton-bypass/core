@@ -3,28 +3,28 @@ import {
     storeStateInit
 } from '@ton/core';
 
-export type InitConfig = {
+export type MainContractConfig = {
     number: number;
     address: Address;
 };
 
-export function initConfigToCell(config: InitConfig): Cell {
+export function initConfigToCell(config: MainContractConfig): Cell {
     return beginCell().storeUint(config.number, 32).storeAddress(config.address).endCell();
 }
 
-export class Init implements Contract {
+export class MainContact implements Contract {
     constructor(readonly address: Address, readonly init?: { code: Cell; data: Cell }) { }
 
     static createFromAddress(address: Address) {
-        return new Init(address);
+        return new MainContact(address);
     }
 
-    static createFromConfig(config: InitConfig, code: Cell, workchain = 0) {
+    static createFromConfig(config: MainContractConfig, code: Cell, workchain = 0) {
         const data = initConfigToCell(config);
         const init = { code, data };
         const address = contractAddress(workchain, init);
 
-        return new Init(address, init);
+        return new MainContact(address, init);
     }
 
     async sendDeploy(provider: ContractProvider, via: Sender, value: bigint) {

@@ -1,9 +1,9 @@
 import { toNano } from '@ton/core';
-import { Init } from '../wrappers/Init';
+import { MainContact } from '../wrappers/MainContract';
 import { compile, NetworkProvider } from '@ton/blueprint';
 
 export async function run(provider: NetworkProvider) {
-    const init = provider.open(Init.createFromConfig({}, await compile('Init')));
+    const init = provider.open(MainContact.createFromConfig({}, await compile('Init')));
 
     await init.sendDeploy(provider.sender(), toNano('0.05'));
 
