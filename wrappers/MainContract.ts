@@ -12,16 +12,16 @@ import {
 } from '@ton/core';
 
 export type MainContractConfig = {
-    number: number;
-    value: number;
+    counter: number;
+    some_value: number;
     address: Address;
     owner_address: Address;
 };
 
 export function mainContractConfigToCell(config: MainContractConfig): Cell {
     return beginCell()
-        .storeUint(config.number, 32)
-        .storeUint(config.value, 32)
+        .storeUint(config.counter, 32)
+        .storeUint(config.some_value, 32)
         .storeAddress(config.address)
         .storeAddress(config.owner_address)
         .endCell();

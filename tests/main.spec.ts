@@ -28,8 +28,8 @@ describe('main.fc contract tests', () => {
         mainContract = blockchain.openContract(
             await MainContact.createFromConfig(
                 {
-                    number: 0,
-                    value: 0,
+                    counter: 0,
+                    some_value: 0,
                     address: mainWallet.address,
                     owner_address: ownerWallet.address,
                 },
@@ -47,10 +47,13 @@ describe('main.fc contract tests', () => {
             deploy: true,
             success: true,
         });
+
+        const data = await mainContract.getData();
+        expect(data.number).toEqual(1);
     });
 
     it('should incremnet', async () => {
-        const sendIncrementResult = await mainContract.sendIncrement(deployWallet.getSender(), toNano('0.05'), 1);
+        const sendIncrementResult = await mainContract.sendIncrement(deployWallet.getSender(), toNano('0.05'), 79);
 
         expect(sendIncrementResult.transactions).toHaveTransaction({
             from: deployWallet.address,
@@ -59,7 +62,8 @@ describe('main.fc contract tests', () => {
         });
 
         const data = await mainContract.getData();
-        expect(data.recent_sender.toString()).toBe(deployWallet.address.toString());
+
+        expect(data.value).toEqual(79);
     });
 
     it('should get the proper most recent sender address', async () => {
@@ -75,7 +79,9 @@ describe('main.fc contract tests', () => {
         const data = await mainContract.getData();
 
         expect(data.recent_sender.toString()).toBe(senderWallet.address.toString());
+
         expect(data.number).toEqual(1);
+        expect(data.value).toEqual(7);
     });
 
     it('successfully deposits funds', async () => {
