@@ -115,13 +115,82 @@ describe('main.fc contract tests', () => {
 
         expect(balanceRequest.number).toBe(0);
     });
+
     it('successfully withdraws funds on behalf of owner', async () => {
-        // test logic is coming
+        const senderWallet = await blockchain.treasury('sender');
+
+        await mainContract.sendDeposit(senderWallet.getSender(), toNano('5'));
+
+        const withdrawalRequestResult = await mainContract.sendWithdrawalRequest(
+            ownerWallet.getSender(),
+            toNano('0.05'),
+            toNano('1'),
+        );
+
+        expect(withdrawalRequestResult.transactions).toHaveTransaction({
+            from: mainContract.address,
+            to: ownerWallet.address,
+            success: true,
+            value: toNano(1),
+        });
     });
+
     it('fails to withdraw funds on behalf of non-owner', async () => {
-        // test logic is coming
+        const senderWallet = await blockchain.treasury('sender');
+
+        await mainContract.sendDeposit(senderWallet.getSender(), toNano('5'));
+
+        const withdrawalRequestResult = await mainContract.sendWithdrawalRequest(
+            senderWallet.getSender(),
+            toNano('0.5'),
+            toNano('1'),
+        );
+
+        expect(withdrawalRequestResult.transactions).toHaveTransaction({
+            from: senderWallet.address,
+            to: mainContract.address,
+            success: false,
+            exitCode: 103,
+        });
     });
+
     it('fails to withdraw funds because lack of balance', async () => {
-        // test logic is coming
+        const withdrawalRequestResult = await mainContract.sendWithdrawalRequest(
+            ownerWallet.getSender(),
+            toNano('0.5'),
+            toNano('1'),
+        );
+
+        expect(withdrawalRequestResult.transactions).toHaveTransaction({
+            from: ownerWallet.address,
+            to: mainContract.address,
+            success: false,
+            exitCode: 104,
+        });
     });
+
+    it('should execute', async () => {
+        const withdrawalRequestResult = await mainContract.sendExecute(ownerWallet.getSender(), toNano('0.5'));
+
+        expect(withdrawalRequestResult.transactions).toHaveTransaction({
+            from: ownerWallet.address,
+            to: mainContract.address,
+            success: true,
+            exitCode: 0,
+        });
+    });
+
+    it('should not execute', async () => {
+        const senderWallet = await blockchain.treasury('sender');
+
+        const withdrawalRequestResult = await mainContract.sendExecute(senderWallet.getSender(), toNano('0.5'));
+
+        expect(withdrawalRequestResult.transactions).toHaveTransaction({
+            from: senderWallet.address,
+            to: mainContract.address,
+            success: false,
+            exitCode: 103,
+        });
+    });
+
 });
