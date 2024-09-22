@@ -1,8 +1,7 @@
 #include "imports/stdlib.fc";
 
-const op::increase = "op::increase"c; ;; create an opcode from string using the "c" prefix, this results in 0x7e8764ef opcode in this case
-
-;; storage variables
+#include "imports/constants.fc";
+#include "imports/op-codes.fc";
 
 ;; id is required to be able to create different instances of counters
 ;; since addresses in TON depend on the initial state of the contract

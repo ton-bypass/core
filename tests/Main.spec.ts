@@ -1,5 +1,5 @@
 import { Blockchain, SandboxContract, TreasuryContract } from '@ton/sandbox';
-import { Cell, beginCell, storeStateInit, StateInit, toNano } from '@ton/core';
+import { Cell, toNano } from '@ton/core';
 import { Main } from '../wrappers/Main';
 import '@ton/test-utils';
 import { compile } from '@ton/blueprint';
@@ -153,11 +153,7 @@ describe('main.fc contract tests', () => {
     });
 
     it('fails to withdraw funds because lack of balance', async () => {
-        const withdrawalRequestResult = await main.sendWithdrawalRequest(
-            owner.getSender(),
-            toNano('0.5'),
-            toNano('1'),
-        );
+        const withdrawalRequestResult = await main.sendWithdrawalRequest(owner.getSender(), toNano('0.5'), toNano('1'));
 
         expect(withdrawalRequestResult.transactions).toHaveTransaction({
             from: owner.address,
