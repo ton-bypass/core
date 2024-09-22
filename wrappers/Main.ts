@@ -1,24 +1,13 @@
-import {
-    Address,
-    beginCell,
-    Cell,
-    Contract,
-    contractAddress,
-    ContractProvider,
-    Sender,
-    SendMode,
-    StateInit,
-    storeStateInit,
-} from '@ton/core';
+import { Address, beginCell, Cell, Contract, contractAddress, ContractProvider, Sender, SendMode } from '@ton/core';
 
-export type MainContractConfig = {
+export type MainConfig = {
     counter: number;
     some_value: number;
     address: Address;
     owner_address: Address;
 };
 
-export function mainContractConfigToCell(config: MainContractConfig): Cell {
+export function mainContractConfigToCell(config: MainConfig): Cell {
     return beginCell()
         .storeUint(config.counter, 32)
         .storeUint(config.some_value, 32)
@@ -27,22 +16,22 @@ export function mainContractConfigToCell(config: MainContractConfig): Cell {
         .endCell();
 }
 
-export class MainContact implements Contract {
+export class Main implements Contract {
     constructor(
         readonly address: Address,
         readonly init?: { code: Cell; data: Cell },
     ) {}
 
     static async createFromAddress(address: Address) {
-        return new MainContact(address);
+        return new Main(address);
     }
 
-    static async createFromConfig(config: MainContractConfig, code: Cell, workchain = 0) {
+    static async createFromConfig(config: MainConfig, code: Cell, workchain = 0) {
         const data = mainContractConfigToCell(config);
         const init = { code, data };
         const address = contractAddress(workchain, init);
 
-        return new MainContact(address, init);
+        return new Main(address, init);
     }
 
     async sendDeploy(provider: ContractProvider, via: Sender, value: bigint) {

@@ -29,8 +29,8 @@ const const::min_tons_for_storage = 10000000; ;; 0.01 TON
 
 () execute (cell) impure asm "c5 POPCTR";
 
-() recv_internal(int my_balance, int msg_value, cell in_msg_full, slice in_msg_body) impure {
-  slice cs = in_msg_full.begin_parse();
+() recv_internal(int my_balance, int msg_value, cell in_msg, slice in_msg_body) impure {
+  slice cs = in_msg.begin_parse();
   int flags = cs~load_uint(4);
   slice sender_address = cs~load_msg_addr();
 

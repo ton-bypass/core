@@ -1,16 +1,23 @@
 import { address, toNano } from '@ton/core';
-import { MainContact } from '../wrappers/MainContract';
+import { Main } from '../wrappers/Main';
 import { compile, NetworkProvider } from '@ton/blueprint';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 export async function run(provider: NetworkProvider) {
-    const mainContract = await MainContact.createFromConfig(
+    const owner_addres = process.env.OWNER_ADDRESS ? process.env.OWNER_ADDRESS : '';
+
+    console.log(owner_addres);
+
+    const mainContract = await Main.createFromConfig(
         {
             counter: 0,
             some_value: 0,
-            address: address('EQDzUEDYegDxcx8n-AXLFZQ2MLZd5DNG3jBXzLDnwVrZeCLJ'),
-            owner_address: address('EQDzUEDYegDxcx8n-AXLFZQ2MLZd5DNG3jBXzLDnwVrZeCLJ'),
+            address: address(owner_addres),
+            owner_address: address(owner_addres),
         },
-        await compile('MainContract'),
+        await compile('Main'),
     );
 
     const openedContract = provider.open(mainContract);
