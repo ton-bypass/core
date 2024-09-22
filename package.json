@@ -1,12 +1,10 @@
 {
-    "name": "stolyarchuk.ton",
-    "version": "0.0.1",
+    "name": "bypass.ton",
+    "version": "0.0.0",
     "scripts": {
         "start": "blueprint run",
         "build": "blueprint build",
-        "compile": "ts-node ./scripts/compile.ts",
-        "test": "jest --verbose",
-        "deploy:testnet": "npm run compile && ts-node ./scripts/deploy.ts"
+        "test": "jest --verbose"
     },
     "devDependencies": {
         "@ton/blueprint": "^0.24.0",
