@@ -1,4 +1,5 @@
 import { Address, beginCell, Cell, Contract, contractAddress, ContractProvider, Sender, SendMode } from '@ton/core';
+import { Opcodes } from './Opcodes';
 
 export type MainConfig = {
     counter: number;
@@ -36,7 +37,7 @@ export class Main implements Contract {
 
     async sendDeploy(provider: ContractProvider, via: Sender, value: bigint) {
         const msg_body = beginCell()
-            .storeUint(1, 32) // OP code
+            .storeUint(Opcodes.counter, 32) // OP code
             .endCell();
 
         await provider.internal(via, {
@@ -48,7 +49,7 @@ export class Main implements Contract {
 
     async sendIncrement(provider: ContractProvider, sender: Sender, value: bigint, increment_by: number) {
         const msg_body = beginCell()
-            .storeUint(4, 32) // OP code
+            .storeUint(Opcodes.increase, 32) // OP code
             .storeUint(increment_by, 32) // increment_by value
             .endCell();
 
@@ -61,7 +62,7 @@ export class Main implements Contract {
 
     async sendDeposit(provider: ContractProvider, sender: Sender, value: bigint) {
         const msg_body = beginCell()
-            .storeUint(2, 32) // OP code
+            .storeUint(Opcodes.deposit, 32) // OP code
             .endCell();
 
         await provider.internal(sender, {
@@ -83,7 +84,7 @@ export class Main implements Contract {
 
     async sendExecute(provider: ContractProvider, sender: Sender, value: bigint) {
         const msg_body = beginCell()
-            .storeUint(5, 32) // OP code
+            .storeUint(Opcodes.execute, 32) // OP code
             .storeRef(new Cell())
             .endCell();
 
@@ -96,7 +97,7 @@ export class Main implements Contract {
 
     async sendWithdrawalRequest(provider: ContractProvider, sender: Sender, value: bigint, amount: bigint) {
         const msg_body = beginCell()
-            .storeUint(3, 32) // OP code
+            .storeUint(Opcodes.withdraw, 32) // OP code
             .storeCoins(amount)
             .endCell();
 
