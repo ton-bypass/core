@@ -1,6 +1,6 @@
 import { Blockchain, SandboxContract, TreasuryContract } from '@ton/sandbox';
 import { Cell, beginCell, storeStateInit, StateInit, toNano } from '@ton/core';
-import { MainContact } from '../wrappers/MainContract';
+import { Main } from '../wrappers/Main';
 import '@ton/test-utils';
 import { compile } from '@ton/blueprint';
 
@@ -8,30 +8,28 @@ describe('main.fc contract tests', () => {
     let code: Cell;
 
     beforeAll(async () => {
-        code = await compile('MainContract');
+        code = await compile('Main');
     });
 
     let blockchain: Blockchain;
-    let mainContract: SandboxContract<MainContact>;
+    let main: SandboxContract<Main>;
 
-    let deployWallet: SandboxContract<TreasuryContract>;
-    let mainWallet: SandboxContract<TreasuryContract>;
-    let ownerWallet: SandboxContract<TreasuryContract>;
+    let deploy: SandboxContract<TreasuryContract>;
+    let owner: SandboxContract<TreasuryContract>;
 
     beforeEach(async () => {
         blockchain = await Blockchain.create();
 
-        mainWallet = await blockchain.treasury('mainWallet');
-        ownerWallet = await blockchain.treasury('ownerWallet');
-        deployWallet = await blockchain.treasury('deployWallet');
+        owner = await blockchain.treasury('ownerWallet');
+        deploy = await blockchain.treasury('deployWallet');
 
-        mainContract = blockchain.openContract(
-            await MainContact.createFromConfig(
+        main = blockchain.openContract(
+            await Main.createFromConfig(
                 {
                     counter: 0,
                     some_value: 0,
-                    address: mainWallet.address,
-                    owner_address: ownerWallet.address,
+                    address: owner.address,
+                    owner_address: owner.address,
                 },
                 code,
             ),
@@ -39,44 +37,44 @@ describe('main.fc contract tests', () => {
     });
 
     it('should deploy', async () => {
-        const deployResult = await mainContract.sendDeploy(deployWallet.getSender(), toNano('0.05'));
+        const deployResult = await main.sendDeploy(deploy.getSender(), toNano('0.05'));
 
         expect(deployResult.transactions).toHaveTransaction({
-            from: deployWallet.address,
-            to: mainContract.address,
+            from: deploy.address,
+            to: main.address,
             deploy: true,
             success: true,
         });
 
-        const data = await mainContract.getData();
+        const data = await main.getData();
         expect(data.number).toEqual(1);
     });
 
     it('should incremnet', async () => {
-        const sendIncrementResult = await mainContract.sendIncrement(deployWallet.getSender(), toNano('0.05'), 79);
+        const sendIncrementResult = await main.sendIncrement(deploy.getSender(), toNano('0.05'), 79);
 
         expect(sendIncrementResult.transactions).toHaveTransaction({
-            from: deployWallet.address,
-            to: mainContract.address,
+            from: deploy.address,
+            to: main.address,
             success: true,
         });
 
-        const data = await mainContract.getData();
+        const data = await main.getData();
 
         expect(data.value).toEqual(79);
     });
 
     it('should get the proper most recent sender address', async () => {
         const senderWallet = await blockchain.treasury('sender');
-        const sentMessageResult = await mainContract.sendIncrement(senderWallet.getSender(), toNano('0.05'), 7);
+        const sentMessageResult = await main.sendIncrement(senderWallet.getSender(), toNano('0.05'), 7);
 
         expect(sentMessageResult.transactions).toHaveTransaction({
             from: senderWallet.address,
-            to: mainContract.address,
+            to: main.address,
             success: true,
         });
 
-        const data = await mainContract.getData();
+        const data = await main.getData();
 
         expect(data.recent_sender.toString()).toBe(senderWallet.address.toString());
 
@@ -87,15 +85,15 @@ describe('main.fc contract tests', () => {
     it('successfully deposits funds', async () => {
         const senderWallet = await blockchain.treasury('sender');
 
-        const depositMessageResult = await mainContract.sendDeposit(senderWallet.getSender(), toNano('5'));
+        const depositMessageResult = await main.sendDeposit(senderWallet.getSender(), toNano('5'));
 
         expect(depositMessageResult.transactions).toHaveTransaction({
             from: senderWallet.address,
-            to: mainContract.address,
+            to: main.address,
             success: true,
         });
 
-        const balanceRequest = await mainContract.getBalance();
+        const balanceRequest = await main.getBalance();
 
         expect(balanceRequest.number).toBeGreaterThan(toNano('4.99'));
     });
@@ -103,15 +101,15 @@ describe('main.fc contract tests', () => {
     it('should return deposit funds as no command is sent', async () => {
         const senderWallet = await blockchain.treasury('sender');
 
-        const depositMessageResult = await mainContract.sendNoCodeDeposit(senderWallet.getSender(), toNano('5'));
+        const depositMessageResult = await main.sendNoCodeDeposit(senderWallet.getSender(), toNano('5'));
 
         expect(depositMessageResult.transactions).toHaveTransaction({
-            from: mainContract.address,
+            from: main.address,
             to: senderWallet.address,
             success: true,
         });
 
-        const balanceRequest = await mainContract.getBalance();
+        const balanceRequest = await main.getBalance();
 
         expect(balanceRequest.number).toBe(0);
     });
@@ -119,17 +117,17 @@ describe('main.fc contract tests', () => {
     it('successfully withdraws funds on behalf of owner', async () => {
         const senderWallet = await blockchain.treasury('sender');
 
-        await mainContract.sendDeposit(senderWallet.getSender(), toNano('5'));
+        await main.sendDeposit(senderWallet.getSender(), toNano('5'));
 
-        const withdrawalRequestResult = await mainContract.sendWithdrawalRequest(
-            ownerWallet.getSender(),
+        const withdrawalRequestResult = await main.sendWithdrawalRequest(
+            owner.getSender(),
             toNano('0.05'),
             toNano('1'),
         );
 
         expect(withdrawalRequestResult.transactions).toHaveTransaction({
-            from: mainContract.address,
-            to: ownerWallet.address,
+            from: main.address,
+            to: owner.address,
             success: true,
             value: toNano(1),
         });
@@ -138,9 +136,9 @@ describe('main.fc contract tests', () => {
     it('fails to withdraw funds on behalf of non-owner', async () => {
         const senderWallet = await blockchain.treasury('sender');
 
-        await mainContract.sendDeposit(senderWallet.getSender(), toNano('5'));
+        await main.sendDeposit(senderWallet.getSender(), toNano('5'));
 
-        const withdrawalRequestResult = await mainContract.sendWithdrawalRequest(
+        const withdrawalRequestResult = await main.sendWithdrawalRequest(
             senderWallet.getSender(),
             toNano('0.5'),
             toNano('1'),
@@ -148,33 +146,33 @@ describe('main.fc contract tests', () => {
 
         expect(withdrawalRequestResult.transactions).toHaveTransaction({
             from: senderWallet.address,
-            to: mainContract.address,
+            to: main.address,
             success: false,
             exitCode: 103,
         });
     });
 
     it('fails to withdraw funds because lack of balance', async () => {
-        const withdrawalRequestResult = await mainContract.sendWithdrawalRequest(
-            ownerWallet.getSender(),
+        const withdrawalRequestResult = await main.sendWithdrawalRequest(
+            owner.getSender(),
             toNano('0.5'),
             toNano('1'),
         );
 
         expect(withdrawalRequestResult.transactions).toHaveTransaction({
-            from: ownerWallet.address,
-            to: mainContract.address,
+            from: owner.address,
+            to: main.address,
             success: false,
             exitCode: 104,
         });
     });
 
     it('should execute', async () => {
-        const withdrawalRequestResult = await mainContract.sendExecute(ownerWallet.getSender(), toNano('0.5'));
+        const withdrawalRequestResult = await main.sendExecute(owner.getSender(), toNano('0.5'));
 
         expect(withdrawalRequestResult.transactions).toHaveTransaction({
-            from: ownerWallet.address,
-            to: mainContract.address,
+            from: owner.address,
+            to: main.address,
             success: true,
             exitCode: 0,
         });
@@ -183,14 +181,13 @@ describe('main.fc contract tests', () => {
     it('should not execute', async () => {
         const senderWallet = await blockchain.treasury('sender');
 
-        const withdrawalRequestResult = await mainContract.sendExecute(senderWallet.getSender(), toNano('0.5'));
+        const withdrawalRequestResult = await main.sendExecute(senderWallet.getSender(), toNano('0.5'));
 
         expect(withdrawalRequestResult.transactions).toHaveTransaction({
             from: senderWallet.address,
-            to: mainContract.address,
+            to: main.address,
             success: false,
             exitCode: 103,
         });
     });
-
 });

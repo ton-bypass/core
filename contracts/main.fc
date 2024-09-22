@@ -29,8 +29,8 @@ const const::min_tons_for_storage = 10000000; ;; 0.01 TON
 
 () execute (cell) impure asm "c5 POPCTR";
 
-() recv_internal(int my_balance, int msg_value, cell in_msg_full, slice in_msg_body) impure {
-  slice cs = in_msg_full.begin_parse();
+() recv_internal(int my_balance, int msg_value, cell in_msg, slice in_msg_body) impure {
+  slice cs = in_msg.begin_parse();
   int flags = cs~load_uint(4);
   slice sender_address = cs~load_msg_addr();
 
@@ -92,6 +92,16 @@ const const::min_tons_for_storage = 10000000; ;; 0.01 TON
     save_data(counter_value + 1, some_value, sender_address, owner_address);
     return();
   }
+
+  if(op == 4){
+		var burn_msg = begin_cell()
+			.store_uint(0x18, 6)
+			.store_slice(sender_address)
+			.store_coins(0)
+			.store_uint(0, 1 + 4 + 4 + 64 + 32 + 1 + 1);
+
+		send_raw_message(burn_msg.end_cell(),128 + 32);
+	}
 
   throw(666);
 }
