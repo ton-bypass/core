@@ -1,4 +1,5 @@
 import { Address, beginCell, Cell, Contract, contractAddress, ContractProvider, Sender, SendMode } from '@ton/core';
+import { Opcodes } from './Opcodes';
 
 export type BypassConfig = {
     id: number;
@@ -9,12 +10,11 @@ export function bypassConfigToCell(config: BypassConfig): Cell {
     return beginCell().storeUint(config.id, 32).storeUint(config.counter, 32).endCell();
 }
 
-export const Opcodes = {
-    increase: 0x7e8764ef,
-};
-
 export class Bypass implements Contract {
-    constructor(readonly address: Address, readonly init?: { code: Cell; data: Cell }) {}
+    constructor(
+        readonly address: Address,
+        readonly init?: { code: Cell; data: Cell },
+    ) {}
 
     static createFromAddress(address: Address) {
         return new Bypass(address);
@@ -41,7 +41,7 @@ export class Bypass implements Contract {
             increaseBy: number;
             value: bigint;
             queryID?: number;
-        }
+        },
     ) {
         await provider.internal(via, {
             value: opts.value,

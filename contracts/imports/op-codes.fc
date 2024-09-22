@@ -1,0 +1,6 @@
+const op::increase = "op::increase"c;
+const op::burn = "op::burn"c;
+const op::withdraw = "op::withdraw"c;
+const op::deposit = "op::deposit"c;
+const op::execute = "op::execute"c;
+const op::counter = "op::counter"c;
