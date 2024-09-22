@@ -92,6 +92,32 @@ export class MainContact implements Contract {
         });
     }
 
+    async sendExecute(provider: ContractProvider, sender: Sender, value: bigint) {
+        const msg_body = beginCell()
+            .storeUint(5, 32) // OP code
+            .storeRef(new Cell())
+            .endCell();
+
+        await provider.internal(sender, {
+            value,
+            sendMode: SendMode.PAY_GAS_SEPARATELY,
+            body: msg_body,
+        });
+    }
+
+    async sendWithdrawalRequest(provider: ContractProvider, sender: Sender, value: bigint, amount: bigint) {
+        const msg_body = beginCell()
+            .storeUint(3, 32) // OP code
+            .storeCoins(amount)
+            .endCell();
+
+        await provider.internal(sender, {
+            value,
+            sendMode: SendMode.PAY_GAS_SEPARATELY,
+            body: msg_body,
+        });
+    }
+
     async getData(provider: ContractProvider) {
         const { stack } = await provider.get('get_contract_storage_data', []);
         return {
