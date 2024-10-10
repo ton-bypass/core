@@ -12,7 +12,7 @@
         "@ton/crypto": "^3.3.0",
         "@ton/sandbox": "^0.22.0",
         "@ton/test-utils": "^0.4.2",
-        "@ton/ton": "^15.0.0",
+        "@ton/ton": "^15.1.0",
         "@types/jest": "^29.5.13",
         "@types/node": "^22.7.5",
         "@types/qrcode-terminal": "^0.12.2",
