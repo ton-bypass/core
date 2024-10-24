@@ -13,7 +13,7 @@
         "@ton/sandbox": "^0.22.0",
         "@ton/test-utils": "^0.4.2",
         "@ton/ton": "^15.0.0",
-        "@types/jest": "^29.5.13",
+        "@types/jest": "^29.5.14",
         "@types/node": "^22.7.5",
         "@types/qrcode-terminal": "^0.12.2",
         "@types/qs": "^6.9.16",
